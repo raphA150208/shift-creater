@@ -1,0 +1,13 @@
+staff:
+  - id: 1
+    name: chika
+    date_of_birth: 2000-07-01
+    nearest_station: Tokyo
+  - id: 2
+    name: airi
+    date_of_birth: 2005-08-13
+    nearest_station: Meguro
+  - id: 3
+    name: nanami
+    date_of_birth: 1998-10-25
+    nearest_station: Kichijoji
