@@ -34,9 +34,8 @@ public interface UserMapper {
             "email = #{email}, " +
             "is_active = #{active}, " +
             "is_admin = #{admin}, " +
-            "updated_at = CURRENT_TIMESTAMP " +
-            // パスワードが設定されている場合のみ更新
-            "${password != null ? ', password = #{password}' : ''} " +
+            "updated_at = CURRENT_TIMESTAMP, " +
+            "password = CASE WHEN #{password} IS NULL THEN password ELSE #{password} END " +
             "WHERE user_id = #{userId}")
     void update(User user);
 

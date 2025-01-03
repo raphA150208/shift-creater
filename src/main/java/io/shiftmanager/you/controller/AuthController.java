@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,18 +22,24 @@ public class AuthController {
 
     private final UserService userService;
 
-    // ログインページの表示
     @GetMapping("/login")
-    public String showLoginForm(Model model, HttpSession session) {
-        // すでにログインしている場合はリダイレクト
-        if (SecurityContextHolder.getContext().getAuthentication() != null &&
-                SecurityContextHolder.getContext().getAuthentication().isAuthenticated()) {
-            return "redirect:/calendar"; // カレンダー画面へ
+    public String showLoginForm(Model model, HttpSession session, HttpServletRequest request) {
+        // アカウント作成ページからのアクセスの場合はリダイレクトしない
+        String referer = request.getHeader("Referer");
+        if (referer != null && referer.contains("/account/create")) {
+            return "login";
         }
-        return "login"; // login.htmlを表示
+
+        // 認証状態をより厳密にチェック
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && 
+            authentication.isAuthenticated() && 
+            !(authentication instanceof AnonymousAuthenticationToken)) {
+            return "redirect:/calendar";
+        }
+        return "login";
     }
 
-    // ログイン失敗時の処理
     @GetMapping("/login-error")
     public String loginError(Model model) {
         model.addAttribute("loginError", true);
@@ -40,10 +47,9 @@ public class AuthController {
         return "login";
     }
 
-    // ログアウト処理
     @GetMapping("/logout")
     public String logout(HttpServletRequest request, HttpServletResponse response,
-                         RedirectAttributes redirectAttributes) {
+                        RedirectAttributes redirectAttributes) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null) {
             new SecurityContextLogoutHandler().logout(request, response, auth);
@@ -52,9 +58,8 @@ public class AuthController {
         return "redirect:/login";
     }
 
-    // アクセス拒否時の処理
     @GetMapping("/access-denied")
     public String accessDenied() {
-        return "error/403"; // 403.htmlを表示
+        return "error/403";
     }
 }
