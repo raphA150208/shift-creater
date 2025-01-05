@@ -2,6 +2,7 @@ package io.shiftmanager.you.controller;
 
 import io.shiftmanager.you.model.User;
 import io.shiftmanager.you.service.UserService;
+import io.shiftmanager.you.exception.DuplicateEmailException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -42,10 +43,12 @@ public class AccountController {
             // 入力チェックの結果をこの変数に入れます
             BindingResult result,
             // 画面遷移時にメッセージを渡すための機能です
+            Model model,
             RedirectAttributes redirectAttributes) {
 
         // 入力内容にエラーがある場合
         if (result.hasErrors()) {
+            model.addAttribute("errorMessage", "入力内容に誤りがあります");
             // アカウント作成画面を再表示します（エラーメッセージ付き）
             return "account-create";
         }
@@ -57,11 +60,12 @@ public class AccountController {
             redirectAttributes.addFlashAttribute("successMessage", "アカウントが正常に作成されました");
             // ログイン画面に移動します
             return "redirect:/login";
+        } catch (DuplicateEmailException e) {
+            model.addAttribute("errorMessage", "このメールアドレスは既に使用されています");
+            return "account-create";
         } catch (Exception e) {
-            // エラーが発生した場合、エラーメッセージを設定します
-            redirectAttributes.addFlashAttribute("errorMessage", "アカウントの作成に失敗しました");
-            // アカウント作成画面に戻ります
-            return "redirect:/account/create";
+            model.addAttribute("errorMessage", "アカウントの作成に失敗しました");
+            return "account-create";
         }
     }
 } 

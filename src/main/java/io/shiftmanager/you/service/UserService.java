@@ -1,6 +1,7 @@
 package io.shiftmanager.you.service;
 
 import io.shiftmanager.you.exception.UserNotFoundException;
+import io.shiftmanager.you.exception.DuplicateEmailException;
 import io.shiftmanager.you.model.User;
 import io.shiftmanager.you.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,11 @@ public class UserService {
 
     @Transactional
     public User createUser(User user) {
+        // パールアドレスの重複チェック
+        if (existsByEmail(user.getEmail())) {
+            throw new DuplicateEmailException("このメールアドレスは既に使用されています");
+        }
+        
         // パスワードをハッシュ化
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         // デフォルト値を設定
