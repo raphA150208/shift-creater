@@ -8,38 +8,59 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
 import jakarta.validation.Valid;
 
+// アカウント作成に関する処理
 @Controller
+// URLの先頭に /account が付く
 @RequestMapping("/account")
 @RequiredArgsConstructor
 public class AccountController {
 
+    // ユーザー情報を処理するための機能を使えるようにします
     private final UserService userService;
 
+    // アカウント作成画面を表示する処理
+    // /account/create というURLにアクセスがあった時に動きます
     @GetMapping("/create")
     public String showCreateForm(Model model) {
+        // まだユーザー情報が画面にない場合は、新しい空のユーザー情報を作ります
         if (!model.containsAttribute("user")) {
             model.addAttribute("user", new User());
         }
+        // account-create.html という画面を表示します
         return "account-create";
     }
 
+    // アカウント作成フォームが送信された時の処理
+    // /account/create に対してPOSTリクエストがあった時に動きます
     @PostMapping("/create")
-    public String createAccount(@Valid @ModelAttribute("user") User user,
-                              BindingResult result,
-                              RedirectAttributes redirectAttributes) {
+    public String createAccount(
+            // フォームの入力内容をUserクラスの形式で受け取ります
+            // @Validは入力内容が正しいかチェックする指示です
+            @Valid @ModelAttribute("user") User user,
+            // 入力チェックの結果をこの変数に入れます
+            BindingResult result,
+            // 画面遷移時にメッセージを渡すための機能です
+            RedirectAttributes redirectAttributes) {
+
+        // 入力内容にエラーがある場合
         if (result.hasErrors()) {
+            // アカウント作成画面を再表示します（エラーメッセージ付き）
             return "account-create";
         }
 
         try {
+            // UserServiceを使って新しいユーザーを作成します
             userService.createUser(user);
+            // 成功メッセージを設定します
             redirectAttributes.addFlashAttribute("successMessage", "アカウントが正常に作成されました");
+            // ログイン画面に移動します
             return "redirect:/login";
         } catch (Exception e) {
+            // エラーが発生した場合、エラーメッセージを設定します
             redirectAttributes.addFlashAttribute("errorMessage", "アカウントの作成に失敗しました");
+            // アカウント作成画面に戻ります
             return "redirect:/account/create";
         }
     }
